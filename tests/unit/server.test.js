@@ -1,69 +1,122 @@
+const chai = require('chai');
 const rewire = require('rewire');
-const { expect } = require('chai');
 const sandbox = require('sinon').sandbox.create();
+const sinonChai = require('sinon-chai');
 
-const Server = rewire('../../src/server');
+const Client = require('../helpers/mocks/clients/fakeClient')(sandbox);
+const ConsoleLogger = require('../helpers/mocks/loggers/fakeLogger')(sandbox);
+const DummyRadio = require('../helpers/mocks/radios/fakeRadio')(sandbox);
+const LocalDatabase = require('../helpers/mocks/databases/fakeDatabase')(sandbox);
+const LocalStore = require('../helpers/mocks/stores/fakeStore')(sandbox);
+
+const { expect } = chai;
+chai.use(sinonChai);
 
 describe('Server', () => {
-  let Client;
   let server;
-  const ws = {};
+  let Server;
 
   before(() => {
-    Client = sandbox.stub();
-    Client.withArgs(ws).returns({
-      socket: ws
+    Server = rewire('../../src/server');
+    Server.__set__('Client', Client);
+    Server.__set__('ConsoleLogger', ConsoleLogger);
+    Server.__set__('DummyRadio', DummyRadio);
+    Server.__set__('LocalDatabase', LocalDatabase);
+    Server.__set__('LocalStore', LocalStore);
+  });
+
+  context('when initialized with empty parameters', () => {
+    before(() => {
+      server = new Server();
     });
 
-    Server.__set__('Client', Client);
-    server = new Server();
-  });
-
-  afterEach(() => {
-    sandbox.restore();
-  });
-
-  context('when initialized', () => {
     it('has an empty client list', () => {
       expect(server.clients).to.be.instanceOf(Array);
       expect(server.clients.length).to.be.equal(0);
     });
+
+    it('uses a local store', () => {
+      expect(server.store).to.be.instanceOf(LocalStore);
+    });
+
+    it('uses a local database', () => {
+      expect(server.database).to.be.instanceOf(LocalDatabase);
+    });
+
+    it('uses a console logger', () => {
+      expect(server.logger).to.be.instanceOf(ConsoleLogger);
+    });
   });
 
-  context('when incoming connection', () => {
+  ['store', 'database', 'logger', 'radio'].forEach((key) => {
+    context(`when initialized with a custom ${key}`, () => {
+      let options;
+      let value;
+
+      before(() => {
+        options = {};
+        value = sandbox.stub();
+        options[key] = value;
+        server = new Server(options);
+      });
+
+      after(() => {
+        sandbox.restore();
+      });
+
+      it(`uses the provided ${key}`, () => {
+        expect(server[key]).to.be.equal(value);
+      });
+    });
+  });
+
+  context('when it receives a connection from a `Client`', () => {
+    let client;
+
+    before(() => {
+      client = new Client();
+      server = new Server();
+      server.accept(client);
+    });
+
     after(() => {
-      server.clients = [];
+      sandbox.restore();
     });
 
-    it('grants it', () => {
-      expect(() => {
-        server.accept(ws);
-      }).to.not.throw();
-    });
-
-    it('inserts a new entry inside the clients list', () => {
+    it('adds the `Client` to the list', () => {
       expect(server.clients.length).to.be.equal(1);
+      expect(server.clients[0]).to.be.equal(client);
     });
 
-    it('creates an entry being initialized from the `Client` class', () => {
-      expect(Client.calledOnce).to.equal(true);
-      expect(Client.calledWith(ws)).to.equal(true);
+    it('stores the `Client` inside the store', () => {
+      expect(server.store.setClient).to.have.been.calledWithExactly(client);
     });
 
-    it('creates an entry having the same socket attribute as provided', () => {
-      expect(server.clients[0].socket).to.equal(ws);
+    it('broadcasts the `Client` connection to the other servers', () => {
+      expect(server.radio.emitClientConnect).to.have.been.calledWithExactly(client);
     });
   });
 
   context('when someone disconnects from it', () => {
+    let client;
+
     before(() => {
-      const client = new Client({});
+      client = new Client();
+      server = new Server();
       server.clients.push(client);
       server.disconnect(client);
     });
 
     it('removes the corresponding client entry from the client list', () => {
       expect(server.clients.length).to.be.equal(0);
+    });
+
+    it('removes the `Client` from the store', () => {
+      expect(server.store.deleteClient).to.have.been.calledWithExactly(client);
+    });
+
+    it('broadcasts the `Client` disconnection to the other servers', () => {
+      expect(server.radio.emitClientDisconnect).to.have.been.calledWithExactly(client);
     });
   });
 });

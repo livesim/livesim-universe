@@ -6,6 +6,7 @@ module.exports = {
   },
   "rules": {
     "comma-dangle": 0,
-    "no-underscore-dangle": 0
+    "no-underscore-dangle": 0,
+    "no-unused-expressions": 0
   }
 };
