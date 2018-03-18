@@ -7,7 +7,6 @@ const Client = require('../../helpers/mocks/clients/fakeClient')(sandbox);
 const ConsoleLogger = require('../../helpers/mocks/loggers/fakeLogger')(sandbox);
 const Server = require('../../helpers/mocks/fakeServer')(sandbox);
 const WebSocket = require('../../helpers/mocks/fakeWebSocket')(sandbox);
-const WsClientSocket = require('../../helpers/mocks/sockets/fakeWsClientSocket')(sandbox);
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -24,7 +23,6 @@ describe('WsServerSocket', () => {
     WsServerSocket.__set__('ConsoleLogger', ConsoleLogger);
     WsServerSocket.__set__('Server', Server);
     WsServerSocket.__set__('WebSocket', WebSocket);
-    WsServerSocket.__set__('WsClientSocket', WsClientSocket);
   });
 
   context('when initialized with a `Server` and no options', () => {
@@ -159,7 +157,6 @@ describe('WsServerSocket', () => {
   context('when a connection has been accepted', () => {
     let ws;
     let req;
-    let wsClientSocket;
     let client;
 
     before(() => {
@@ -174,20 +171,9 @@ describe('WsServerSocket', () => {
       sandbox.restore();
     });
 
-    it('creates a new `WsClientSocket` from `ws` and `req`', () => {
-      expect(WsClientSocket).to.have.been.calledWithNew;
-      expect(WsClientSocket).to.have.been.calledWithExactly(ws, req);
-      wsClientSocket = WsClientSocket.firstCall.returnValue;
-    });
-
-    it('creates a new `Client` from the resulting `WsClientSocket`', () => {
-      expect(Client).to.have.been.calledWithNew;
-      expect(Client).to.have.been.calledWithExactly(wsClientSocket);
-      client = Client.firstCall.returnValue;
-    });
-
-    it('tells the `server` to `accept` the resulting `Client`', () => {
-      expect(wsServerSocket.server.accept).to.have.been.calledWithExactly(client);
+    it('tells the `server` to `accept` the created `Client`', () => {
+      [client] = wsServerSocket.server.accept.firstCall.args;
+      expect(client).to.be.instanceOf(Client);
     });
   });
 

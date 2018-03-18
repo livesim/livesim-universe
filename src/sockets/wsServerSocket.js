@@ -1,7 +1,6 @@
 const WebSocket = require('ws');
 const Client = require('../clients/client');
 const ConsoleLogger = require('../loggers/consoleLogger');
-const WsClientSocket = require('./wsClientSocket');
 
 /** @class WsServerSocket */
 class WsServerSocket {
@@ -62,8 +61,7 @@ class WsServerSocket {
    * @param {IncomingMessage} req
    */
   handleConnection(ws, req) {
-    const socket = new WsClientSocket(ws, req);
-    const client = new Client(socket);
+    const client = new Client(ws, req);
     this.server.accept(client);
   }
 
