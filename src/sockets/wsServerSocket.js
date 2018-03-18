@@ -27,7 +27,7 @@ class WsServerSocket {
 
     /**
      * @member WsServerSocket#socket
-     * @type {?WebSocketServer}
+     * @type {WebSocketServer}
      */
     this.socket = null;
 
@@ -57,12 +57,19 @@ class WsServerSocket {
     this.server.ready();
   }
 
+  /**
+   * @param {WebSocket} ws
+   * @param {IncomingMessage} req
+   */
   handleConnection(ws, req) {
     const socket = new WsClientSocket(ws, req);
     const client = new Client(socket);
     this.server.accept(client);
   }
 
+  /**
+   * @param {Error} error
+   */
   handleError(error) {
     this.logger.error(error);
   }
