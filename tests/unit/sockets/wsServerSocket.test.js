@@ -4,10 +4,11 @@ const rewire = require('rewire');
 const sandbox = require('sinon').sandbox.create();
 const sinonChai = require('sinon-chai');
 
-const Client = require('../../helpers/mocks/clients/fakeClient')(sandbox);
+const { StubbedClient } = require('../../helpers/mocks/clients/fakeClient')(sandbox);
 const ConsoleLogger = require('../../helpers/mocks/loggers/fakeLogger')(sandbox);
 const Server = require('../../helpers/mocks/fakeServer')(sandbox);
 const WebSocket = require('../../helpers/mocks/fakeWebSocket')(sandbox);
+const WsClientSocket = require('../../helpers/mocks/sockets/fakeWsClientSocket')(sandbox);
 
 const { expect } = chai;
 chai.use(chaiAsPromised);
@@ -21,10 +22,11 @@ describe('WsServerSocket', () => {
   before(() => {
     server = new Server();
     WsServerSocket = rewire('../../../src/sockets/wsServerSocket');
-    WsServerSocket.__set__('Client', Client);
+    WsServerSocket.__set__('Client', StubbedClient);
     WsServerSocket.__set__('ConsoleLogger', ConsoleLogger);
     WsServerSocket.__set__('Server', Server);
     WsServerSocket.__set__('WebSocket', WebSocket);
+    WsServerSocket.__set__('WsClientSocket', WsClientSocket);
   });
 
   context('when initialized with a `Server` and no options', () => {
@@ -183,6 +185,7 @@ describe('WsServerSocket', () => {
     let ws;
     let req;
     let client;
+    let wsClientSocket;
 
     before(() => {
       ws = sandbox.mock();
@@ -196,9 +199,22 @@ describe('WsServerSocket', () => {
       sandbox.restore();
     });
 
+    it('creates a `WsClientSocket` from the client\'s socket', () => {
+      expect(WsClientSocket).to.have.been.calledOnce;
+      expect(WsClientSocket).to.have.been.calledWithNew;
+      expect(WsClientSocket).to.have.been.calledWith(ws, req);
+      wsClientSocket = WsClientSocket.firstCall.returnValue;
+    });
+
+    it('creates a `Client` from the previously created `WsClientSocket`', () => {
+      expect(StubbedClient).to.have.been.calledOnce;
+      expect(StubbedClient).to.have.been.calledWithNew;
+      expect(StubbedClient).to.have.been.calledWith(wsClientSocket);
+      client = StubbedClient.firstCall.returnValue;
+    });
+
     it('tells the `server` to `accept` the created `Client`', () => {
-      [client] = wsServerSocket.server.accept.firstCall.args;
-      expect(client).to.be.instanceOf(Client);
+      expect(client).to.be.deep.equal(wsServerSocket.server.accept.firstCall.args[0]);
     });
   });
 

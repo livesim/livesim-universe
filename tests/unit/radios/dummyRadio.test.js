@@ -1,7 +1,7 @@
 const rewire = require('rewire');
 const sandbox = require('sinon').sandbox.create();
 
-const Client = require('../../helpers/mocks/clients/fakeClient')(sandbox);
+const { MockedClient } = require('../../helpers/mocks/clients/fakeClient')(sandbox);
 
 describe('DummyRadio', () => {
   let dummyRadio;
@@ -20,7 +20,7 @@ describe('DummyRadio', () => {
     let client;
 
     before(() => {
-      client = new Client();
+      client = new MockedClient();
       dummyRadio.emitClientConnect(client);
     });
 

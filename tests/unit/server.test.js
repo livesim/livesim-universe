@@ -4,7 +4,7 @@ const rewire = require('rewire');
 const sandbox = require('sinon').sandbox.create();
 const sinonChai = require('sinon-chai');
 
-const Client = require('../helpers/mocks/clients/fakeClient')(sandbox);
+const { MockedClient, StubbedClient } = require('../helpers/mocks/clients/fakeClient')(sandbox);
 const ConsoleLogger = require('../helpers/mocks/loggers/fakeLogger')(sandbox);
 const DummyRadio = require('../helpers/mocks/radios/fakeRadio')(sandbox);
 const LocalDatabase = require('../helpers/mocks/databases/fakeDatabase')(sandbox);
@@ -20,7 +20,7 @@ describe('Server', () => {
 
   before(() => {
     Server = rewire('../../src/server');
-    Server.__set__('Client', Client);
+    Server.__set__('Client', StubbedClient);
     Server.__set__('ConsoleLogger', ConsoleLogger);
     Server.__set__('DummyRadio', DummyRadio);
     Server.__set__('LocalDatabase', LocalDatabase);
@@ -83,7 +83,7 @@ describe('Server', () => {
     let client;
 
     before(() => {
-      client = new Client();
+      client = new MockedClient();
       server = new Server();
       server.accept(client);
     });
@@ -110,7 +110,7 @@ describe('Server', () => {
     let client;
 
     before(() => {
-      client = new Client();
+      client = new MockedClient();
       server = new Server();
       server.clients.push(client);
       server.disconnect(client);
@@ -153,10 +153,10 @@ describe('Server', () => {
     let joe;
 
     before(() => {
-      bob = new Client();
+      bob = new MockedClient();
       bob.id = 'bob';
 
-      joe = new Client();
+      joe = new MockedClient();
       joe.id = 'joe';
 
       server = new Server();

@@ -1,9 +1,3 @@
-module.exports = (sandbox) => {
-  class FakeWsClientSocket {
-    constructor() {
-      this.close = sandbox.stub();
-    }
-  }
-
-  return FakeWsClientSocket;
-};
+module.exports = sandbox => sandbox.stub().returns({
+  close: sandbox.stub()
+});

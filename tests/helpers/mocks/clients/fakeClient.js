@@ -1,9 +1,14 @@
 module.exports = (sandbox) => {
-  class FakeClient {
+  class MockedClient {
     constructor() {
-      this.disconnect = sandbox.stub().resolves();
+      this.disconnect = sandbox.stub();
     }
   }
 
-  return FakeClient;
+  return {
+    MockedClient,
+    StubbedClient: sandbox.stub().returns({
+      disconnect: sandbox.stub()
+    })
+  };
 };

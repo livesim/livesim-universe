@@ -3,7 +3,7 @@ const rewire = require('rewire');
 const sandbox = require('sinon').sandbox.create();
 const sinonChai = require('sinon-chai');
 
-const Client = require('../../helpers/mocks/clients/fakeClient')(sandbox);
+const { MockedClient } = require('../../helpers/mocks/clients/fakeClient')(sandbox);
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -31,7 +31,7 @@ describe('LocalStore', () => {
     let client;
 
     before(() => {
-      client = new Client();
+      client = new MockedClient();
       client.id = 'sample-id';
 
       localStore = new LocalStore();
@@ -48,11 +48,11 @@ describe('LocalStore', () => {
     let joe;
 
     before(() => {
-      bob = new Client();
+      bob = new MockedClient();
       bob.id = 'sample-id';
       bob.name = 'bob';
 
-      joe = new Client();
+      joe = new MockedClient();
       joe.id = 'sample-id';
       joe.name = 'joe';
 
@@ -71,11 +71,11 @@ describe('LocalStore', () => {
     let joe;
 
     before(() => {
-      bob = new Client();
+      bob = new MockedClient();
       bob.id = 'bob-id';
       bob.name = 'bob';
 
-      joe = new Client();
+      joe = new MockedClient();
       joe.id = 'joe-id';
       joe.name = 'joe';
 
