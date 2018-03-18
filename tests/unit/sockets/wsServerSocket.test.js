@@ -68,10 +68,18 @@ describe('WsServerSocket', () => {
   });
 
   context('when initialized with a `Server` and no options and the `listen` method is called', () => {
+    let boundHandleConnection;
+    let boundHandleError;
+
     before(() => {
       wsServerSocket = new WsServerSocket(server);
-      wsServerSocket.handleConnection.bind = sandbox.stub();
-      wsServerSocket.handleError.bind = sandbox.stub();
+
+      boundHandleConnection = wsServerSocket.handleConnection.bind(wsServerSocket);
+      boundHandleError = wsServerSocket.handleError.bind(wsServerSocket);
+
+      wsServerSocket.handleConnection.bind = sandbox.stub().returns(boundHandleConnection);
+      wsServerSocket.handleError.bind = sandbox.stub().returns(boundHandleError);
+
       wsServerSocket.listen();
     });
 
@@ -88,14 +96,14 @@ describe('WsServerSocket', () => {
     it('listens for incoming connections', () => {
       expect(wsServerSocket.socket.on).to.have.been.calledWith(
         'connection',
-        wsServerSocket.handleConnection.bind(wsServerSocket)
+        boundHandleConnection
       );
     });
 
     it('listens for errors', () => {
       expect(wsServerSocket.socket.on).to.have.been.calledWith(
         'error',
-        wsServerSocket.handleError.bind(wsServerSocket)
+        boundHandleError
       );
     });
   });
