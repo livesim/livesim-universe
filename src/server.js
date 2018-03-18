@@ -63,7 +63,7 @@ class Server {
 
   shutdown() {
     this.radio.emitServerShuttingDown(this);
-    return Promise.all(this.clients.map(client => client.disconnect()));
+    this.clients.forEach((client) => { client.disconnect(); });
   }
 }
 

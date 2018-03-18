@@ -151,21 +151,18 @@ describe('Server', () => {
   context('when the socket is closing', () => {
     let bob;
     let joe;
-    let shutdownResult;
 
     before(() => {
       bob = new Client();
       bob.id = 'bob';
-      bob.disconnect.resolves('bob-disconnected');
 
       joe = new Client();
       joe.id = 'joe';
-      joe.disconnect.resolves('joe-disconnected');
 
       server = new Server();
       server.clients.push(bob);
       server.clients.push(joe);
-      shutdownResult = server.shutdown();
+      server.shutdown();
     });
 
     after(() => {
@@ -175,23 +172,6 @@ describe('Server', () => {
     it('tells the other servers that the current server is shutting down', () => {
       expect(server.radio.emitServerShuttingDown).to.have.been.calledWithExactly(server);
     });
-
-    it('returns a Promise', () => {
-      expect(shutdownResult).to.be.instanceOf(Promise);
-      expect(shutdownResult).to.be.fulfilled;
-    });
-
-    it('resolving with an Array', () => (
-      expect(shutdownResult).to.eventually.be.instanceOf(Array)
-    ));
-
-    it('having with two elements', () => (
-      expect(shutdownResult).to.eventually.have.length(2)
-    ));
-
-    it('with the results of `disconnect()` calls', () => (
-      expect(shutdownResult).to.eventually.include('bob-disconnected', 'joe-disconnected')
-    ));
 
     it('and tells every client about the shutdown', () => {
       expect(bob.disconnect).to.have.been.calledOnce;
