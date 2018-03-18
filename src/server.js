@@ -56,6 +56,10 @@ class Server {
     this.store.deleteClient(client);
     this.radio.emitClientDisconnect(client);
   }
+
+  ready() {
+    this.radio.emitServerReady(this);
+  }
 }
 
 module.exports = Server;

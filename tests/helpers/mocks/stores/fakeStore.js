@@ -1,14 +1,4 @@
-/**
- * @param {SinonSandbox}
- * @returns {FakeStore}
- */
-module.exports = (sandbox) => {
-  class FakeStore {
-    constructor() {
-      this.setClient = sandbox.stub();
-      this.deleteClient = sandbox.stub();
-    }
-  }
-
-  return FakeStore;
-};
+module.exports = sandbox => sandbox.stub().returns({
+  setClient: sandbox.stub(),
+  deleteClient: sandbox.stub()
+});

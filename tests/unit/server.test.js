@@ -30,21 +30,28 @@ describe('Server', () => {
       server = new Server();
     });
 
+    after(() => {
+      sandbox.restore();
+    });
+
     it('has an empty client list', () => {
       expect(server.clients).to.be.instanceOf(Array);
       expect(server.clients.length).to.be.equal(0);
     });
 
     it('uses a local store', () => {
-      expect(server.store).to.be.instanceOf(LocalStore);
+      expect(LocalStore).to.have.been.calledWithNew;
+      expect(server.store).to.be.deep.equal(LocalStore.firstCall.returnValue);
     });
 
     it('uses a local database', () => {
-      expect(server.database).to.be.instanceOf(LocalDatabase);
+      expect(LocalDatabase).to.have.been.calledWithNew;
+      expect(server.database).to.be.deep.equal(LocalDatabase.firstCall.returnValue);
     });
 
     it('uses a console logger', () => {
-      expect(server.logger).to.be.instanceOf(ConsoleLogger);
+      expect(ConsoleLogger).to.have.been.calledWithNew;
+      expect(server.logger).to.be.deep.equal(ConsoleLogger.firstCall.returnValue);
     });
   });
 
@@ -65,7 +72,7 @@ describe('Server', () => {
       });
 
       it(`uses the provided ${key}`, () => {
-        expect(server[key]).to.be.equal(value);
+        expect(server[key]).to.be.deep.equal(value);
       });
     });
   });
@@ -85,7 +92,7 @@ describe('Server', () => {
 
     it('adds the `Client` to the list', () => {
       expect(server.clients.length).to.be.equal(1);
-      expect(server.clients[0]).to.be.equal(client);
+      expect(server.clients[0]).to.be.deep.equal(client);
     });
 
     it('stores the `Client` inside the store', () => {
@@ -107,6 +114,10 @@ describe('Server', () => {
       server.disconnect(client);
     });
 
+    after(() => {
+      sandbox.restore();
+    });
+
     it('removes the corresponding client entry from the client list', () => {
       expect(server.clients.length).to.be.equal(0);
     });
@@ -117,6 +128,21 @@ describe('Server', () => {
 
     it('broadcasts the `Client` disconnection to the other servers', () => {
       expect(server.radio.emitClientDisconnect).to.have.been.calledWithExactly(client);
+    });
+  });
+
+  context('when the socket is listening', () => {
+    before(() => {
+      server = new Server();
+      server.ready();
+    });
+
+    after(() => {
+      sandbox.restore();
+    });
+
+    it('tells the other servers that the current server is alive', () => {
+      expect(server.radio.emitServerReady).to.have.been.calledWithExactly(server);
     });
   });
 });

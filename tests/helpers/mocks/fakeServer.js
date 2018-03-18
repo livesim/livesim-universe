@@ -1,3 +1,4 @@
 module.exports = sandbox => sandbox.stub().returns({
-  error: sandbox.stub()
+  ready: sandbox.stub(),
+  accept: sandbox.stub()
 });

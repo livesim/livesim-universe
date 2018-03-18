@@ -1,10 +1,1 @@
-/**
- * @param {SinonSandbox}
- * @returns {FakeDatabase}
- */
-module.exports = () => {
-  class FakeDatabase {
-  }
-
-  return FakeDatabase;
-};
+module.exports = sandbox => sandbox.stub().returns({});
