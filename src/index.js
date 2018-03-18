@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+const Server = require('./server');
+const WsServerSocket = require('./sockets/wsServerSocket');
 const program = require('commander');
 
 program
@@ -9,3 +11,7 @@ program
   .option('-s, --store-url', 'Store URL')
   .option('-l, --log-file', 'Path to log file')
   .parse(process.argv);
+
+const server = new Server();
+const socket = new WsServerSocket(server, { port: 7777 });
+socket.listen();
