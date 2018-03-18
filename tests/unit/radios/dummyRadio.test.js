@@ -9,13 +9,10 @@ describe('DummyRadio', () => {
 
   before(() => {
     DummyRadio = rewire('../../../src/radios/dummyRadio');
+    dummyRadio = new DummyRadio();
   });
 
   context('when initialized', () => {
-    before(() => {
-      dummyRadio = new DummyRadio();
-    });
-
     it('does nothing', () => {});
   });
 
@@ -24,8 +21,15 @@ describe('DummyRadio', () => {
 
     before(() => {
       client = new Client();
-      dummyRadio = new DummyRadio();
       dummyRadio.emitClientConnect(client);
+    });
+
+    it('does nothing', () => {});
+  });
+
+  context('when emitting a server shutdown', () => {
+    before(() => {
+      dummyRadio.emitServerShuttingDown();
     });
 
     it('does nothing', () => {});

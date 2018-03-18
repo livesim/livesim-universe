@@ -2,6 +2,7 @@
 
 class DummyRadio {
   emitClientConnect() {}
+  emitServerShuttingDown() {}
 }
 
 module.exports = DummyRadio;
