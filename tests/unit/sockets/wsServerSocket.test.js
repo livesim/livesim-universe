@@ -40,13 +40,43 @@ describe('WsServerSocket', () => {
       expect(wsServerSocket.server).to.be.deep.equal(server);
     });
 
-    it('uses the default port', () => {
-      expect(WebSocket.Server).to.have.been.calledWithMatch({ port: 8080 });
+    it('stores the empty options locally', () => {
+      expect(wsServerSocket.options).to.be.deep.equal({});
     });
 
     it('uses a console logger', () => {
       expect(ConsoleLogger).to.have.been.calledWithNew;
       expect(wsServerSocket.logger).to.be.deep.equal(ConsoleLogger.firstCall.returnValue);
+    });
+  });
+
+  context('when initialized with a `Server` and a custom port', () => {
+    let options;
+
+    before(() => {
+      options = { port: 7777 };
+      wsServerSocket = new WsServerSocket(server, options);
+    });
+
+    after(() => {
+      sandbox.restore();
+    });
+
+    it('stores the provided options locally', () => {
+      expect(wsServerSocket.options).to.be.deep.equal(options);
+    });
+  });
+
+  context('when initialized with a `Server` and no options and the `listen` method is called', () => {
+    before(() => {
+      wsServerSocket = new WsServerSocket(server);
+      wsServerSocket.handleConnection.bind = sandbox.stub();
+      wsServerSocket.handleError.bind = sandbox.stub();
+      wsServerSocket.listen();
+    });
+
+    it('uses the default port', () => {
+      expect(WebSocket.Server).to.have.been.calledWithMatch({ port: 8080 });
     });
 
     it('sets the `verifyClient` option to it\'s `verifyClient` method', () => {
@@ -56,17 +86,24 @@ describe('WsServerSocket', () => {
     });
 
     it('listens for incoming connections', () => {
-      expect(wsServerSocket.socket.on).to.have.been.calledWith('connection');
+      expect(wsServerSocket.socket.on).to.have.been.calledWith(
+        'connection',
+        wsServerSocket.handleConnection.bind(wsServerSocket)
+      );
     });
 
     it('listens for errors', () => {
-      expect(wsServerSocket.socket.on).to.have.been.calledWith('error');
+      expect(wsServerSocket.socket.on).to.have.been.calledWith(
+        'error',
+        wsServerSocket.handleError.bind(wsServerSocket)
+      );
     });
   });
 
-  context('when initialized with a `Server` and a custom port', () => {
+  context('when initialized with a `Server` and a custom port and the `listen` method is called', () => {
     before(() => {
       wsServerSocket = new WsServerSocket(server, { port: 7777 });
+      wsServerSocket.listen();
     });
 
     after(() => {

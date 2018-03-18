@@ -5,7 +5,13 @@ const WsClientSocket = require('./wsClientSocket');
 
 /** @class WsServerSocket */
 class WsServerSocket {
-  /** @constructs WsServerSocket */
+  /**
+   * @constructs WsServerSocket
+   * @param {Server} server
+   * @param {Object?} options
+   * @param {Logger?} options.logger
+   * @param {number?} options.port
+   */
   constructor(server, options = {}) {
     /**
      * @member WsServerSocket#logger
@@ -21,15 +27,25 @@ class WsServerSocket {
 
     /**
      * @member WsServerSocket#socket
-     * @type {WebSocketServer}
+     * @type {?WebSocketServer}
      */
+    this.socket = null;
+
+    /**
+     * @member WsServerSocket#options
+     * @type {Object}
+     */
+    this.options = options;
+  }
+
+  listen() {
     this.socket = new WebSocket.Server({
-      port: options.port || 8080,
+      port: this.options.port || 8080,
       verifyClient: this.verifyClient
     });
 
-    this.socket.on('connection', this.handleConnection);
-    this.socket.on('error', this.handleError);
+    this.socket.on('connection', this.handleConnection.bind(this));
+    this.socket.on('error', this.handleError.bind(this));
   }
 
   // eslint-disable-next-line
