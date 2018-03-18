@@ -51,7 +51,6 @@ describe('LocalStore', () => {
       bob = new Client();
       bob.id = 'sample-id';
       bob.name = 'bob';
-      Client.reset();
 
       joe = new Client();
       joe.id = 'sample-id';
@@ -75,7 +74,6 @@ describe('LocalStore', () => {
       bob = new Client();
       bob.id = 'bob-id';
       bob.name = 'bob';
-      Client.reset();
 
       joe = new Client();
       joe.id = 'joe-id';
