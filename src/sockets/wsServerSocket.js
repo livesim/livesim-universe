@@ -48,8 +48,10 @@ class WsServerSocket {
   }
 
   close() {
-    return this.server.shutdown()
-      .then(this.socket.close);
+    return new Promise((resolve) => {
+      this.server.shutdown();
+      this.socket.close(() => resolve());
+    });
   }
 
   // eslint-disable-next-line
