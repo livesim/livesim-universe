@@ -1,5 +1,6 @@
 module.exports = sandbox => ({
   Server: sandbox.stub().returns({
-    on: sandbox.stub()
+    on: sandbox.stub(),
+    close: sandbox.stub()
   })
 });

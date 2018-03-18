@@ -47,6 +47,11 @@ class WsServerSocket {
     this.socket.on('error', this.handleError.bind(this));
   }
 
+  close() {
+    return this.server.shutdown()
+      .then(this.socket.close);
+  }
+
   // eslint-disable-next-line
   verifyClient(options, cb) {
     cb(true);

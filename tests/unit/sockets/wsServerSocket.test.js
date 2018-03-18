@@ -1,4 +1,5 @@
 const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
 const rewire = require('rewire');
 const sandbox = require('sinon').sandbox.create();
 const sinonChai = require('sinon-chai');
@@ -9,6 +10,7 @@ const Server = require('../../helpers/mocks/fakeServer')(sandbox);
 const WebSocket = require('../../helpers/mocks/fakeWebSocket')(sandbox);
 
 const { expect } = chai;
+chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
 describe('WsServerSocket', () => {
@@ -118,6 +120,29 @@ describe('WsServerSocket', () => {
 
     it('uses the provided port', () => {
       expect(WebSocket.Server).to.have.been.calledWithMatch({ port: 7777 });
+    });
+  });
+
+  context('when initialized with a `Server` and no options and the `close` method is called after the `listen` method', () => {
+    let closeResult;
+
+    before(() => {
+      wsServerSocket = new WsServerSocket(server);
+      wsServerSocket.listen();
+      closeResult = wsServerSocket.close();
+    });
+
+    it('returns a Promise', () => (
+      expect(closeResult).to.have.fulfilled
+    ));
+
+    it('asks the server to shut down', () => {
+      expect(server.shutdown).to.have.been.calledOnce;
+    });
+
+    it('closes the local socket', () => {
+      expect(wsServerSocket.socket.close).to.have.been.calledOnce;
+      expect(wsServerSocket.socket.close).to.have.been.calledAfter(server.shutdown);
     });
   });
 
