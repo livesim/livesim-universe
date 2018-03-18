@@ -60,6 +60,11 @@ class Server {
   ready() {
     this.radio.emitServerReady(this);
   }
+
+  shutdown() {
+    this.radio.emitServerShuttingDown(this);
+    return Promise.all(this.clients.map(client => client.disconnect()));
+  }
 }
 
 module.exports = Server;

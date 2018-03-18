@@ -1,4 +1,5 @@
 const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
 const rewire = require('rewire');
 const sandbox = require('sinon').sandbox.create();
 const sinonChai = require('sinon-chai');
@@ -10,6 +11,7 @@ const LocalDatabase = require('../helpers/mocks/databases/fakeDatabase')(sandbox
 const LocalStore = require('../helpers/mocks/stores/fakeStore')(sandbox);
 
 const { expect } = chai;
+chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
 describe('Server', () => {
@@ -143,6 +145,57 @@ describe('Server', () => {
 
     it('tells the other servers that the current server is alive', () => {
       expect(server.radio.emitServerReady).to.have.been.calledWithExactly(server);
+    });
+  });
+
+  context('when the socket is closing', () => {
+    let bob;
+    let joe;
+    let shutdownResult;
+
+    before(() => {
+      bob = new Client();
+      bob.id = 'bob';
+      bob.disconnect.resolves('bob-disconnected');
+
+      joe = new Client();
+      joe.id = 'joe';
+      joe.disconnect.resolves('joe-disconnected');
+
+      server = new Server();
+      server.clients.push(bob);
+      server.clients.push(joe);
+      shutdownResult = server.shutdown();
+    });
+
+    after(() => {
+      sandbox.restore();
+    });
+
+    it('tells the other servers that the current server is shutting down', () => {
+      expect(server.radio.emitServerShuttingDown).to.have.been.calledWithExactly(server);
+    });
+
+    it('returns a Promise', () => {
+      expect(shutdownResult).to.be.instanceOf(Promise);
+      expect(shutdownResult).to.be.fulfilled;
+    });
+
+    it('resolving with an Array', () => (
+      expect(shutdownResult).to.eventually.be.instanceOf(Array)
+    ));
+
+    it('having with two elements', () => (
+      expect(shutdownResult).to.eventually.have.length(2)
+    ));
+
+    it('with the results of `disconnect()` calls', () => (
+      expect(shutdownResult).to.eventually.include('bob-disconnected', 'joe-disconnected')
+    ));
+
+    it('and tells every client about the shutdown', () => {
+      expect(bob.disconnect).to.have.been.calledOnce;
+      expect(joe.disconnect).to.have.been.calledOnce;
     });
   });
 });
